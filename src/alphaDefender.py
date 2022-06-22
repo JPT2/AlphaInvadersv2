@@ -28,17 +28,32 @@ Expeccted flow
 - What I missed
     - Preprocessing (or any need for it). Can technically be a substep of predict.
 """
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers
 
 
 class AlphaDefender:
 
     def __init__(self):
-        # TODO(ptaggs) Initialize the model
-        pass
+        self.model = keras.Sequential([
+            # Define CNN layer with 20x15 filter (roughly size of most objects)
+            # Define 5 filters (detect self, bullets, enemies, barrier, and another for mutations)
+            layers.Conv2D(filters=5, kernel_size=(20, 15), activation='relu'),
+            layers.Flatten(),
+            layers.Dense(100, activation="relu"),
+            layers.Dense(4, activation=None)
+        ])
+
+        self.memory = MemoryCache()
 
     def predict(self):
         # TODO(ptaggs) Should see if need to define this or if it should be automatic from keras?
         #    Should I inherit from keras?
+        pass
+
+    def __get_action(self, predictions):
+        # TODO(ptaggs)
         pass
 
     def record_state(self):
