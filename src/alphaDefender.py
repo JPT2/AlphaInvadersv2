@@ -31,6 +31,7 @@ Expeccted flow
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
+import numpy as np
 
 
 class AlphaDefender:
@@ -47,10 +48,10 @@ class AlphaDefender:
 
         self.memory = MemoryCache()
 
-    def predict(self):
+    def predict(self, observation):
         # TODO(ptaggs) Should see if need to define this or if it should be automatic from keras?
         #    Should I inherit from keras?
-        pass
+        return np.random.randint(0, 6)
 
     def __get_action(self, predictions):
         # TODO(ptaggs)
