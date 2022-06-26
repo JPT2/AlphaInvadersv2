@@ -1,14 +1,15 @@
 from numpy.random import random
 
-import src.alphaDefender as AlphaDefenderSrc
 import gym
+import tensorflow as tf
 
+import src.alphaDefender as AlphaDefenderSrc
 
 '''
 Goals:
     [Done] - Get the environment to run with random action
     [Done] - Get the environment to run using random actions from the model
-    - Get the environment to use the model to get the actions
+    [Done] - Get the environment to use the model to get the actions
     - Add training step
     - Have model run an episode and train after
 '''
@@ -31,8 +32,12 @@ for i in range(EPISODES):
 
     # Start the episode (Do we need a max episode length?)
     while not done or episode_length < MIN_EPISODE_LENGTH:
-        action = model.predict(observation)
+        action = model.predict(tf.cast(observation, tf.float32))
         observation, reward, done, info = env.step(action)
+
+        if done:
+            # Do some updating to model memory and reset the env
+            observation = env.reset()
 
     # Train the model
     model.train()

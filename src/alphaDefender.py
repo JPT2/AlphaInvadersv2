@@ -33,6 +33,12 @@ from tensorflow import keras
 from keras import layers
 import numpy as np
 
+NOOP = 0
+FIRE = 1
+RIGHT = 2
+LEFT = 3
+RIGHTFIRE = 4
+LEFTFIRE = 5
 
 class AlphaDefender:
 
@@ -47,15 +53,21 @@ class AlphaDefender:
         ])
 
         self.memory = MemoryCache()
+        self.actions = [[NOOP, RIGHT, LEFT], [FIRE, RIGHTFIRE, LEFTFIRE]]
 
-    def predict(self, observation):
+    def predict(self, observation, single=True):
         # TODO(ptaggs) Should see if need to define this or if it should be automatic from keras?
         #    Should I inherit from keras?
-        return np.random.randint(0, 6)
+        observation = np.expand_dims(observation, axis=0) if single else observation
+        model_predictions = self.model(observation)
+        actions = tf.map_fn(self.__get_action, model_predictions, dtype=tf.int32)
+        return actions[0] if single else actions
 
     def __get_action(self, predictions):
-        # TODO(ptaggs)
-        pass
+        should_shoot = tf.sigmoid(predictions[0]) >= np.random.random()
+        movement_action = tf.random.categorical([predictions[1:3]], num_samples=1)[0]
+        return self.actions[int(should_shoot)][movement_action[0]]
+
 
     def record_state(self):
         # TODO(ptaggs)
