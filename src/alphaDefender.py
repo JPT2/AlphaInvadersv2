@@ -68,11 +68,6 @@ class AlphaDefender:
         movement_action = tf.random.categorical([predictions[1:3]], num_samples=1)[0]
         return self.actions[int(should_shoot)][movement_action[0]]
 
-
-    def record_state(self):
-        # TODO(ptaggs)
-        pass
-
     def train(self, memory_cache, loss_function, optimizer):
         with tf.GradientTape() as tape:
             predictions = self.model(memory_cache.observations) # Going to generate predictions based on all the steps
