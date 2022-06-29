@@ -73,9 +73,16 @@ class AlphaDefender:
         # TODO(ptaggs)
         pass
 
-    def train(self):
-        # TODO(ptaggs) Is this something I define explicitly or something tensorflow will handle?
-        pass
+    def train(self, memory_cache, loss_function, optimizer):
+        with tf.GradientTape() as tape:
+            predictions = self.model(memory_cache.observations) # Going to generate predictions based on all the steps
+            loss = loss_function(predictions, memory_cache.actions, memory_cache.discounted_rewards)
+
+        grads = tape.gradient(loss, self.model.trainable_variables)
+
+        # Need to clip the gradients to avoid falling into local minima?
+        grads = tape.clip_by_global_norm(grads, 0.5) # TODO Twiddle with this hyper param
+        optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
     def __reset_state__(self):
         # TODO(ptaggs) Clear the memory cache and setup for next episode
@@ -99,8 +106,10 @@ Evaluation
 class MemoryCache:
 
     def __init__(self, discount_factor=0.7):
-        # TODO(ptaggs)
-        pass
+        self.observations = []
+        self.actions = []
+        self.discount_factor = discount_factor
+        self.discounted_rewards = []
 
     def record_state(self):
         # TODO(ptaggs)
