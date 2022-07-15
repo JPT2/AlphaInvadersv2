@@ -52,7 +52,6 @@ class AlphaDefender:
             layers.Dense(4, activation=None)
         ])
 
-        self.memory = MemoryCache()
         self.actions = [[NOOP, RIGHT, LEFT], [FIRE, RIGHTFIRE, LEFTFIRE]]
 
     def predict(self, observation, single=True):
@@ -68,56 +67,13 @@ class AlphaDefender:
         movement_action = tf.random.categorical([predictions[1:3]], num_samples=1)[0]
         return self.actions[int(should_shoot)][movement_action[0]]
 
-    def train(self, memory_cache, loss_function, optimizer):
+    def train(self, loss_function, optimizer, observations, actions, discounted_rewards):
         with tf.GradientTape() as tape:
-            predictions = self.model(memory_cache.observations) # Going to generate predictions based on all the steps
-            loss = loss_function(predictions, memory_cache.actions, memory_cache.discounted_rewards)
+            predictions = self.model(observations) # Going to generate predictions based on all the steps
+            loss = loss_function(predictions, actions, discounted_rewards)
 
         grads = tape.gradient(loss, self.model.trainable_variables)
 
         # Need to clip the gradients to avoid falling into local minima?
-        grads = tape.clip_by_global_norm(grads, 0.5) # TODO Twiddle with this hyper param
+        grads, _ = tf.clip_by_global_norm(grads, 0.5) # TODO Twiddle with this hyper param
         optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
-
-    def __reset_state__(self):
-        # TODO(ptaggs) Clear the memory cache and setup for next episode
-        pass
-
-
-'''
-Defines the memory of an agent.
-
-Tracks episodic rewards. Reward for any timestep equal to the reward from current timestep + discount of future rewards.
-
-Evaluation
- - What I got right
-    - General structure and high level functions
- 
- - What I missed
-    - Need to track obervations, ACTIONS, and rewards (Need to remind myself why during impl)
-'''
-
-
-class MemoryCache:
-
-    def __init__(self, discount_factor=0.7):
-        self.observations = []
-        self.actions = []
-        self.discount_factor = discount_factor
-        self.discounted_rewards = []
-
-    def record_state(self):
-        # TODO(ptaggs)
-        pass
-
-    def reset(self):
-        # TODO(ptaggs)
-        pass
-
-    def get_state(self):
-        # TODO(ptaggs)
-        pass
-
-    def get_rewards(self):
-        # TODO(ptaggs)
-        pass
