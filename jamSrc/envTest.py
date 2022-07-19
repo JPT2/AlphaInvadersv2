@@ -8,10 +8,12 @@ WILL_RENDER = True
 if WILL_RENDER:
     env = gym.make('ALE/SpaceInvaders-v5', full_action_space=False, render_mode='human')
 else:
-    env = gym.make('ALE/SpaceInvaders-v5', full_action_space=False, render_mode='human')
+    env = gym.make('ALE/SpaceInvaders-v5', full_action_space=False)
 
 observation = env.reset()
 done = False
+
+print(env.action_space)
 
 while not done:
     action = env.action_space.sample()
