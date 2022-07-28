@@ -31,8 +31,6 @@ env = gym.make('ALE/SpaceInvaders-v5', full_action_space=False)
 LEARNING_RATE = 1e-3
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
-# Setup training loop
-
 # Define hyperparams
 EPISODES = 1000 # 00  # How many episodes to run to train the model
 MIN_EPISODE_LENGTH = 100 # How many steps we need to make in the smallest possible episode
@@ -41,6 +39,7 @@ memory_cache = MemorySrc.Memory()
 
 for i in range(EPISODES):
     # Initialize the environment
+    memory_cache.clear()
     observation = env.reset() # TODO(ptaggs) Figure out if need to set a seed
     done = False
     episode_length = 0
@@ -63,4 +62,3 @@ for i in range(EPISODES):
                 np.array(memory_cache.actions), memory_cache.discount_rewards(memory_cache.rewards))
     if EPISODES % 2 == 0:
         print("Finished an epoch! Reward for last episode: ", memory_cache.total_reward())
-    memory_cache.clear()
