@@ -22,12 +22,12 @@ loss_function = lossFunctions.cross_entropy_with_logits_loss
 
 # Setup configs
 training_configs = [
-        {'model': models.cnn_model, 'learning_rate': 1e-5, 'episodes': 50},  # Control
+        {'model': models.cnn_model, 'learning_rate': 1e-5, 'episodes': 5000},  # Control
         {'model': models.cnn_model, 'learning_rate': 1e-3, 'episodes': 50},  # Higher learning rate
-        {'model': models.cnn_model, 'learning_rate': 1e-7, 'episodes': 50},  # Lower learning rate
-        {'model': models.cnn_model_smaller, 'learning_rate': 1e-5, 'episodes': 50},  # Simper
-        {'model': models.cnn_model_more_filters, 'learning_rate': 1e-5, 'episodes': 50},  # More filters
-        {'model': models.cnn_model_double_cnn, 'learning_rate': 1e-5, 'episodes': 50},  # Double layer
+        # {'model': models.cnn_model, 'learning_rate': 1e-7, 'episodes': 50},  # Lower learning rate
+        # {'model': models.cnn_model_smaller, 'learning_rate': 1e-5, 'episodes': 50},  # Simper
+        # {'model': models.cnn_model_more_filters, 'learning_rate': 1e-5, 'episodes': 50},  # More filters
+        # {'model': models.cnn_model_double_cnn, 'learning_rate': 1e-5, 'episodes': 50},  # Double layer
 ]
 number_of_configs = len(training_configs)
 
@@ -45,17 +45,22 @@ def predict(model, observation, single=False):
 
 
 def train(model, optimizer, observations, actions, rewards):
-    if len(observations) > 100:
-        observations = observations[-100:]
-        actions = actions[-100:]
-        rewards = rewards[-100:]
-    with tf.GradientTape() as tape:
-        predictions = model(np.array(observations))
-        losses = loss_function(predictions, np.array(actions), rewards)
-    gradients = tape.gradient(losses, model.trainable_variables)
+    dataset = tf.data.Dataset.from_tensor_slices((observations, actions, rewards))
+    dataset = dataset.shuffle(buffer_size=100)
+    dataset = dataset.batch(100)
 
-    gradients, _ = tf.clip_by_global_norm(gradients, 0.05)
-    optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+    for batch in dataset.as_numpy_iterator():
+        observations = batch[0]
+        actions = batch[1]
+        rewards = batch[2]
+
+        with tf.GradientTape() as tape:
+            predictions = model(np.array(observations))
+            losses = loss_function(predictions, np.array(actions), rewards)
+        gradients = tape.gradient(losses, model.trainable_variables)
+
+        gradients, _ = tf.clip_by_global_norm(gradients, 0.05)
+        optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
 
 def train_model(model, learning_rate, number_of_episodes, view_last_episode=False):
@@ -116,5 +121,5 @@ while number_of_configs > 0:
     number_of_configs -= 1
     config = training_configs[number_of_configs]
     print("Training with config ", number_of_configs)
-    axs[number_of_configs].plot(train_model(config['model'], config['learning_rate'], config['episodes']))
+    axs[number_of_configs].plot(train_model(config['model'], config['learning_rate'], config['episodes'], True))
 plt.show()

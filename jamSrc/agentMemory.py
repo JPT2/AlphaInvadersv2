@@ -21,7 +21,7 @@ class Memory:
 
     def __normalize(self, x):
         x -= np.mean(x)
-        x /= np.std(x)
+        x /= np.abs(np.std(x))
         return x.astype(np.float32)
 
     # Compute normalized, discounted, cumulative rewards (i.e., return)
